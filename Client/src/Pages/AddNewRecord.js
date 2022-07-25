@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import{useHistory, useParams, Link} from "react-router-dom";
+import{useNavigate, useParams, Link} from "react-router-dom";
 import "./AddNewRecord.css";
 import axios from "axios";
 import {toast} from "react-toastify";
@@ -7,30 +7,49 @@ import {toast} from "react-toastify";
 const initialState = {
     StudentName: "",
     StudentEmail: "",
-    GuadianName: "",
+    GuardianName: "",
     GuardianContactNumber: ""
 };
 
 
 const AddNewRecord = () => {
     const [state, setState] = useState (initialState);
-    const {StudentName, StudentEmail,GuadianName,GuardianContactNumber} = state;
-    const history = useHistory();
+    const {StudentName, StudentEmail,GuardianName,GuardianContactNumber} = state;
+    const navigate = useNavigate();
+
+    const {id} = useParams();
+    useEffect(() => {
+        axios.get(`http://localhost:5000/api/get/${id}`).then ((resp) => setState ({...resp.data[0]}));
+    },[id]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if(!StudentName || !StudentEmail || !GuadianName || !GuardianContactNumber){
+        if(!StudentName || !StudentEmail || !GuardianName || !GuardianContactNumber){
             toast.error("Please provide values into each input field");
         }else{
-            axios.post("http://localhost:5000/api/post", {
+            if(!id){
+                axios.post("http://localhost:5000/api/post", {
                 StudentName,
                 StudentEmail,
-                GuadianName,
+                GuardianName,
                 GuardianContactNumber,
             }).then(()=> {
-                setState({StudentName:"", StudentEmail:"",GuadianName:"",GuardianContactNumber:""});
+                setState({StudentName:"", StudentEmail:"",GuardianName:"",GuardianContactNumber:""});
             }).catch((err) => toast.error(err.response.data));
             toast.success("Record Added Successfully!");
-            setTimeout(() => history.push("/"),500);
+            }else{
+                axios.put(`http://localhost:5000/api/update/${id}`, {
+                StudentName,
+                StudentEmail,
+                GuardianName,
+                GuardianContactNumber,
+            }).then(()=> {
+                setState({StudentName:"", StudentEmail:"",GuardianName:"",GuardianContactNumber:""});
+            }).catch((err) => toast.error(err.response.data));
+            toast.success("Record Updated Successfully!");
+            }
+            
+            setTimeout(() => navigate.push("/"),500);
         }
     };
 
@@ -48,15 +67,21 @@ const AddNewRecord = () => {
                 alignContent: "center"
             }}
             onSubmit={handleSubmit}>
-                <label htmlFor="name">Student Name</label>
-                <input type="text" id="studentName" name="studentName" placeholder="Your Name..." value={StudentName} onChange={handleInputChange}/>
-                <label htmlFor="name">Student Email</label>
-                <input type="email" id="studentEmail" name="studentEmail" placeholder="Your Email..." value={StudentEmail} onChange={handleInputChange}/>
-                <label htmlFor="name">Guardian Name</label>
-                <input type="text" id="GuadianName" name="GuadianName" placeholder="Guadian Name..." value={GuadianName} onChange={handleInputChange}/>
-                <label htmlFor="name">Guardian Contact Number</label>
-                <input type="number" id="GuardianContactNumber" name="GuardianContactNumber" placeholder="Guadian Contact Number..." value={GuardianContactNumber} onChange={handleInputChange}/>
-                <input type="submit" value="Save"/>
+                
+                <label htmlFor="StudentName">Student Name</label>
+                <input type="text" id="StudentName" name="StudentName" placeholder="Student Name..." value={StudentName || ""} onChange={handleInputChange}/>
+        
+                <label htmlFor="StudentEmail">Student Email</label>
+                <input type="email" id="StudentEmail" name="StudentEmail" placeholder="Student Email..." value={StudentEmail || ""} onChange={handleInputChange}/>
+
+                <label htmlFor="GuardianName">Guardian Name</label>
+                <input type="text" id="GuardianName" name="GuardianName" placeholder="Guadian Name..." value={GuardianName || ""} onChange={handleInputChange}/>
+    
+                <label htmlFor="GuardianContactNumber">Guardian Contact Number</label>
+                <input type="number" id="GuardianContactNumber" name="GuardianContactNumber" placeholder="Guadian Contact Number..." value={GuardianContactNumber || ""} onChange={handleInputChange}/>
+            
+
+                <input type="submit" value={ id ? "Update" : "Save"}/>
                 <Link to="/">
                     <input type="button" value="Go Back"/>
                 </Link>
