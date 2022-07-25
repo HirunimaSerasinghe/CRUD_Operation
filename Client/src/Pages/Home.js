@@ -15,6 +15,17 @@ const Home = () => {
     useEffect(() => {
         loadData();
     }, []);
+
+    const deleteRow =(id) => {
+        if(
+            window.confirm("Are you sure that you want to delete this record?")
+        ){
+            axios.delete(`http://localhost:5000/api/remove/${id}`);
+            toast.success("Record deleted successfully!");
+            setTimeout(() => loadData(), 500);
+        }
+    };
+    
     return (
         <div style={{marginTop:"150px"}}>
             <Link to='/AddNewRecord'>
@@ -42,11 +53,11 @@ const Home = () => {
                                 <td>{item.GuardianName}</td>
                                 <td>{item.GuardianContactNumber}</td>
                                 <td>
-                                    <Link to={'/update'}>
+                                    <Link to={`/update/${item.StudentID}`}>
                                         <button className="btn btn-edit">Edit</button>
                                     </Link>
-                                    <button className="btn btn-delete">Delete</button>
-                                    <Link to={'/view'}>
+                                    <button className="btn btn-delete" onClick={() => deleteRow(item.StudentID)}>Delete</button>
+                                    <Link to={`/view/${item.StudentID}`}>
                                         <button className="btn btn-view">View</button>
                                     </Link>
                                 </td>
